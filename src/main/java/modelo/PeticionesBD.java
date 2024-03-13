@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PeticionesBD {
 
@@ -16,7 +18,7 @@ public class PeticionesBD {
 		conexion = new ConexionBD();
 	}
 	/* Método que crea un nuevo alumno */
-	public String create(String noControl, String nombre, String apPaterno, String apMaterno)
+	public String create(String Id_Producto, String cNombre_Producto, String cDescripcion, String cPrecio, String cStock_Disponible, String idVentas)
 			throws SQLIntegrityConstraintViolationException {
 		Connection cn = null;
 		Statement stm = null;
@@ -24,14 +26,16 @@ public class PeticionesBD {
 		try {
 			cn = conexion.conectar();
 			stm = cn.createStatement();
-			rs = stm.executeQuery("SELECT * FROM Alumnos");
-			String consulta = "INSERT INTO Alumnos (noControl, nombre, apPaterno, apMaterno) VALUES (?, ?, ?, ?)";
+			rs = stm.executeQuery("SELECT * FROM productos");
+			String consulta = "INSERT INTO productos (Id_Producto, cNombreProducto, cDescripcion, cPrecio, cStock_Disponible, idVentas) VALUES (?, ?, ?, ?, ?, ?)";
 
 			PreparedStatement pstmt = cn.prepareStatement(consulta);
-			pstmt.setString(1, noControl);
-			pstmt.setString(2, nombre);
-			pstmt.setString(3, apPaterno);
-			pstmt.setString(4, apMaterno);
+			pstmt.setString(1, Id_Producto);
+			pstmt.setString(2, cNombre_Producto);
+			pstmt.setString(3, cDescripcion);
+			pstmt.setString(4, cPrecio);
+			pstmt.setString(5, cStock_Disponible);
+			pstmt.setString(6, idVentas);
 			
 			int filasAfectadas = pstmt.executeUpdate();
 			if (filasAfectadas > 0) {
@@ -52,7 +56,7 @@ public class PeticionesBD {
 	}
 	
 	/* Método que obtiene todos los alumnos un nuevo alumno */
-	public void read() {
+	public List<String[]>  read() {
 	    Connection cn = null;
 	    Statement stm = null;
 	    ResultSet rs = null;
@@ -60,24 +64,32 @@ public class PeticionesBD {
 	    try {
 	        cn = conexion.conectar();
 	        stm = cn.createStatement();
-	        rs = stm.executeQuery("SELECT * FROM Alumnos");
-
+	        rs = stm.executeQuery("SELECT * FROM productos");
+	        List<String[]> listaDatos = new ArrayList<>();
 	        while (rs.next()) {
-	            String matricula = rs.getString(1);
+	            String id = rs.getString(1);
 	            String nombre = rs.getString(2);
-	            String apellidoP = rs.getString(3);
-	            String apellidoM = rs.getString(4);
-	            System.out.println(matricula + " | " + nombre + " | " + apellidoP + " | " + apellidoM);
+	            String descripcion = rs.getString(3);
+	            String precio = rs.getString(4);
+	            String esxistencias = rs.getString(5);
+	            String idVentas = rs.getString(6);
+//	            System.out.println(matricula + " | " + nombre + " | " + apellidoP + " | " + apellidoM);
+	            String tabla[] = { id, nombre, descripcion, precio, esxistencias, idVentas};
+
+				// Agregar el array tabla a la lista
+				listaDatos.add(tabla);
 	        }
+	        return listaDatos;
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    } finally {
 	        conexion.desconectar(cn, stm, rs);
 	    }
+	    return null;
 	}
 
-	// Pendiente
-	public void update(String noControl, String nombre, String apPaterno, String apMaterno) {
+	/* Método que actualiza los datos de un alumno especifico */
+	public void update(String Id_Producto, String cNombre_Producto, String cDescripcion, String cPrecio, String cStock_Disponible, String idVentas) {
 	    Connection cn = null;
 	    PreparedStatement statement = null;
 
@@ -85,19 +97,27 @@ public class PeticionesBD {
 	        cn = conexion.conectar();
 
 	        // Construir la consulta SQL de actualización
-	        String consulta = "UPDATE Alumnos SET ";
+	        String consulta = "UPDATE productos SET ";
 	        boolean hayCambios = false;
-
-	        if (nombre != null) {
-	            consulta += "nombre = ?, ";
+//	        cNombre_Producto, cDescripcion, cPrecio, cStock_Disponible, idVentas
+	        if (cNombre_Producto != null) {
+	            consulta += "cNombre_Producto = ?, ";
 	            hayCambios = true;
 	        }
-	        if (apPaterno != null) {
-	            consulta += "apPaterno = ?, ";
+	        if (cDescripcion != null) {
+	            consulta += "cDescripcion = ?, ";
 	            hayCambios = true;
 	        }
-	        if (apMaterno != null) {
-	            consulta += "apMaterno = ?, ";
+	        if (cPrecio != null) {
+	            consulta += "cPrecio = ?, ";
+	            hayCambios = true;
+	        }
+	        if (cStock_Disponible != null) {
+	            consulta += "cStock_Disponible = ?, ";
+	            hayCambios = true;
+	        }
+	        if (idVentas != null) {
+	            consulta += "idVentas = ?, ";
 	            hayCambios = true;
 	        }
 
@@ -105,7 +125,7 @@ public class PeticionesBD {
 	        consulta = consulta.substring(0, consulta.length() - 2);
 
 	        // Agregar la condición WHERE
-	        consulta += " WHERE noControl = ?";
+	        consulta += " WHERE Id_Producto = ?";
 	        if (!hayCambios) {
 	            // Si no se proporcionaron atributos para actualizar, no hacer nada
 	            return;
@@ -115,16 +135,23 @@ public class PeticionesBD {
 
 	        // Establecer los parámetros de la consulta
 	        int parametroIndex = 1;
-	        if (nombre != null) {
-	            statement.setString(parametroIndex++, nombre);
+//	        Id_Producto, cNombre_Producto, cDescripcion, cPrecio, cStock_Disponible, idVentas
+	        if (cNombre_Producto != null) {
+	            statement.setString(parametroIndex++, cNombre_Producto);
 	        }
-	        if (apPaterno != null) {
-	            statement.setString(parametroIndex++, apPaterno);
+	        if (cDescripcion != null) {
+	            statement.setString(parametroIndex++, cDescripcion);
 	        }
-	        if (apMaterno != null) {
-	            statement.setString(parametroIndex++, apMaterno);
+	        if (cPrecio != null) {
+	            statement.setString(parametroIndex++, cPrecio);
 	        }
-	        statement.setString(parametroIndex, noControl);
+	        if (cStock_Disponible != null) {
+	            statement.setString(parametroIndex++, cStock_Disponible);
+	        }
+	        if (idVentas != null) {
+	            statement.setString(parametroIndex++, idVentas);
+	        }
+	        statement.setString(parametroIndex, Id_Producto);
 
 	        // Ejecutar la consulta
 	        statement.executeUpdate();
@@ -132,7 +159,6 @@ public class PeticionesBD {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    } finally {
-	        // Asegúrate de cerrar la conexión y el statement
 	        try {
 	            if (statement != null) {
 	                statement.close();
@@ -146,7 +172,7 @@ public class PeticionesBD {
 	    }
 	}
 	/* Método que elimina un alumno */ 
-	public void delete(String noControl) throws SQLIntegrityConstraintViolationException {
+	public void delete(String Id_Producto) throws SQLIntegrityConstraintViolationException {
 		Connection cn = null;
 		PreparedStatement pstmtEliminarMaestro = null;
 		PreparedStatement pstmtEliminarHorarios = null;
@@ -156,9 +182,9 @@ public class PeticionesBD {
 			cn.setAutoCommit(false); // Desactivar la confirmación automática
 
 			// Eliminar al maestro
-			String consultaEliminarMaestro = "DELETE FROM Alumnos WHERE noControl = ?";
+			String consultaEliminarMaestro = "DELETE FROM productos WHERE Id_Producto = ?";
 			pstmtEliminarMaestro = cn.prepareStatement(consultaEliminarMaestro);
-			pstmtEliminarMaestro.setString(1, noControl);
+			pstmtEliminarMaestro.setString(1, Id_Producto);
 			int filasAfectadas = pstmtEliminarMaestro.executeUpdate();
 
 			// Confirmar la transacción
@@ -196,16 +222,15 @@ public class PeticionesBD {
 	public static void main(String[] args) throws SQLIntegrityConstraintViolationException {
 		PeticionesBD conexion = new PeticionesBD();
 		/* Cración */
-//		conexion.create("21680045", "Juan", "Gomez", "Hernandez");
+//		conexion.create("26", "Juan", "Gomez", "48", "30", "2");
 		
 		/* Lectura */
-		conexion.read();
+//		conexion.read();
 		
-		conexion.update("22680047", null, "Perez", null);
-		
-		conexion.read();
+		/* Actualización */
+		conexion.update("95", null, null, "20", null, null);
 		
 		/* Eliminación */
-//		conexion.delete("21680072");
+//		conexion.delete("26");
 	}
 }

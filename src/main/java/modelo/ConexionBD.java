@@ -9,7 +9,7 @@ import java.sql.Statement;
 public class ConexionBD {
     // Se crean las constantes que almacenarán el controlador, URL, usuario y contraseña
     private static final String CONTROLADOR = "org.mariadb.jdbc.Driver";
-    private static final String URL = "jdbc:mariadb://localhost:3306/controlEscolar";
+    private static final String URL = "jdbc:mariadb://localhost:3306/floreria";
     private static final String USUARIO = "root";
     private static final String CLAVE = "1q2w3e4r5t0p9o8i7u6y";
 
